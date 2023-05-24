@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 from bot.loader import bot, dp
-from bot.config import Config, DB
+from bot.config import Config
 from bot.db.base import Base
 
 
@@ -41,8 +41,9 @@ async def register_all_commands(dispatcher: Dispatcher) -> None:
 
 
 async def get_async_sessionmaker(config: Config):
+    db = config.db
     engine = create_async_engine(
-        f'postgresql+asyncpg://{config.db.user}:{config.db.password}@{config.db.host}:{config.db.port}/{config.db.db_name}',
+        f'postgresql+asyncpg://{db.user}:{db.password}@{db.host}:{db.port}/{db.name}',
         future=True
     )
 
@@ -87,6 +88,7 @@ def main():
     logging.info("Initializing bot")
 
     config: Config = bot['config']
+    '''
     executor.start_polling(
         dp,
         skip_updates=True,
@@ -103,7 +105,6 @@ def main():
         host=config.webhook.app_host,
         port=config.webhook.app_port
     )
-    '''
 
 
 if __name__ == "__main__":

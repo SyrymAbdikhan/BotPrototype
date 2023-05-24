@@ -26,7 +26,7 @@ class Webhook:
 class DB:
     host: str
     port: int
-    db_name: str
+    name: str
     user: str
     password: str
 
@@ -54,7 +54,7 @@ def load_config():
         db=DB(
             host=getenv('DB_HOST'),
             port=int(getenv('DB_PORT')),
-            db_name=getenv('DB_NAME'),
+            name=getenv('DB_NAME'),
             user=getenv('DB_USER'),
             password=getenv('DB_PASS')
         )

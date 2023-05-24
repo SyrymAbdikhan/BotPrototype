@@ -1,54 +1,53 @@
 
-import logging
-
 from aiogram import Dispatcher, types
 
 from bot.db.models import User
 from bot.filters import IsForAIFilter
 from bot.ai import GPT
+from bot.utils.funcs import get_db
 
 gpt = GPT()
 
 
 async def cmd_start(message: types.Message):
-    db_session = message.bot.get('db')
+    db_session = get_db(message.bot['db'])
 
-    async with db_session() as session:
-        await session.merge(User(user_id=message.from_user.id))
-        await session.commit()
+    user_id = message.from_user.id
+    user = User.find(db_session, user_id)
+    if user is None:
+        user = User(user_id=user_id)
+        await user.save(db_session)
 
     await message.answer(f'Hi {message.from_user.first_name}! I am a dummy bot for tasting stuff so dont mind. '
-                          'Also you automatically subscribed to this bot')
+                         'Also you automatically subscribed to this bot')
 
 
 async def cmd_subscribe(message: types.Message):
-    db_session = message.bot.get('db')
+    db_session = get_db(message.bot['db'])
 
-    async with db_session() as session:
-        user: User = await session.get(User, message.from_user.id)
+    user_id = message.from_user.id
+    user = User.find(db_session, user_id)
+    if user is None:
+        user = User(user_id=user_id, subscribed=True)
+        await user.save(db_session)
 
     if user.subscribed:
-        return await message.answer('You already subscribed')
+        return await message.answer('You already subscribed =)')
 
-    async with db_session() as session:
-        await session.merge(User(user_id=message.from_user.id, subscribed=True))
-        await session.commit()
-
-    await message.answer('You subscribed!')
+    await message.answer('You subscribed! ^.^')
 
 
 async def cmd_unsubscribe(message: types.Message):
-    db_session = message.bot.get('db')
-
-    async with db_session() as session:
-        user: User = await session.get(User, message.from_user.id)
+    db_session = get_db(message.bot['db'])
+    
+    user_id = message.from_user.id
+    user = User.find(db_session, user_id)
+    if user is None:
+        user = User(user_id=user_id, subscribed=False)
+        await user.save(db_session)
 
     if not user.subscribed:
-        return await message.answer('You already unsubscribed')
-
-    async with db_session() as session:
-        await session.merge(User(user_id=message.from_user.id, subscribed=False))
-        await session.commit()
+        return await message.answer('You already unsubscribed ;(')
 
     await message.answer('You unsubscribed ;(')
 
